@@ -1,79 +1,83 @@
 <head>
-  <title>Actual Budget Plaid Link</title>
-  <link rel="stylesheet" href="https://threads.plaid.com/threads.css" />
-  <style>
-    body {
-      background-color: #e2e8f0;
-      display: flex;
-      height: 100%;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-  </style>
-  <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
-  <script type="text/javascript">
-    (async function () {
-      const fetchLinkToken = async () => {
-        const response = await fetch("/create_link_token", { method: "POST" });
-        const responseJSON = await response.json();
-        return responseJSON.link_token;
-      };
+    <title>Actual Budget Plaid Link</title>
+    <link rel="stylesheet"
+          href="public/threads.css" />
+    <style>
+        body {
+            background-color: #e2e8f0;
+            display: flex;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <script type="text/javascript">
+        (async function () {
+            const fetchLinkToken = async () => {
+                const response = await fetch("/create_link_token", { method: "POST" });
+                const responseJSON = await response.json();
+                return responseJSON.link_token;
+            };
 
-      const configs = {
-        // 1. Pass a new link_token to Link.
-        token: await fetchLinkToken(),
-        onSuccess: async function (public_token, metadata) {
-          // 2a. Send the public_token to your app server.
-          // The onSuccess function is called when the user has successfully
-          // authenticated and selected an account to use.
-          await fetch("/get_access_token", {
-            method: "POST",
-            body: JSON.stringify({ public_token: public_token }),
-          });
-        },
-        onExit: async function (err, metadata) {
-          // 2b. Gracefully handle the invalid link token error. A link token
-          // can become invalidated if it expires, has already been used
-          // for a link session, or is associated with too many invalid logins.
-          if (err != null && err.error_code === "INVALID_LINK_TOKEN") {
-            linkHandler.destroy();
-            linkHandler = Plaid.create({
-              ...configs,
-              token: await fetchLinkToken(),
-            });
-          }
-          if (err != null) {
-            // Handle any other types of errors.
-          }
-          // metadata contains information about the institution that the
-          // user selected and the most recent API request IDs.
-          // Storing this information can be helpful for support.
-        },
-      };
+            const configs = {
+                // 1. Pass a new link_token to Link.
+                token: await fetchLinkToken(),
+                onSuccess: async function (public_token, metadata) {
+                    // 2a. Send the public_token to your app server.
+                    // The onSuccess function is called when the user has successfully
+                    // authenticated and selected an account to use.
+                    await fetch("/get_access_token", {
+                        method: "POST",
+                        body: JSON.stringify({ public_token: public_token }),
+                    });
+                },
+                onExit: async function (err, metadata) {
+                    // 2b. Gracefully handle the invalid link token error. A link token
+                    // can become invalidated if it expires, has already been used
+                    // for a link session, or is associated with too many invalid logins.
+                    if (err != null && err.error_code === "INVALID_LINK_TOKEN") {
+                        linkHandler.destroy();
+                        linkHandler = Plaid.create({
+                            ...configs,
+                            token: await fetchLinkToken(),
+                        });
+                    }
+                    if (err != null) {
+                        // Handle any other types of errors.
+                    }
+                    // metadata contains information about the institution that the
+                    // user selected and the most recent API request IDs.
+                    // Storing this information can be helpful for support.
+                },
+            };
 
-      var linkHandler = Plaid.create(configs);
+            var linkHandler = Plaid.create(configs);
 
-      document.getElementById("link-button").onclick = function () {
-        linkHandler.open();
-      };
-    })();
-  </script>
+            document.getElementById("link-button").onclick = function () {
+                linkHandler.open();
+            };
+        })();
+    </script>
 </head>
+
 <body>
-  <main class="page">
-    <div class="action-card">
-      <header class="action-card__header">
-        <h1 class="primary-heading">Actual Budget Plaid Link</h1>
-      </header>
-      <div class="action-card__content">
-        <p>Login to each account you intend to sync with Actual Budget</p>
-      </div>
-      <footer class="action-card__footer">
-        <button id="link-button" class="button button--is-primary">
-          Login to Account
-        </button>
-      </footer>
-    </div>
-  </main>
+    <main class="page">
+        <div class="action-card">
+            <header class="action-card__header">
+                <h1 class="primary-heading">Actual Budget Plaid Link</h1>
+            </header>
+            <div class="action-card__content">
+                <p>Login to each account you intend to sync with Actual Budget</p>
+            </div>
+            <footer class="action-card__footer"
+                    style="display: flex; justify-content: center;">
+                <button id="link-button"
+                        class="button button--is-primary">
+                    Login to Account
+                </button>
+            </footer>
+        </div>
+    </main>
 </body>

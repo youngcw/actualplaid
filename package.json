@@ -1,32 +1,33 @@
 {
-  "name": "actualplaid-cli",
-  "version": "0.0.5",
-  "description": "Import transactions from your bank accounts into Actual Budget via Plaid API",
-  "main": "cli.js",
-  "bin": {
-    "actualplaid": "cli.js"
-  },
-  "author": "Luke Herrington <lherrington100@gmail.com>",
-  "license": "MIT",
-  "repository": "github:infiniteluke/actualplaid",
-  "dependencies": {
-    "@actual-app/api": "^1.0.9",
-    "better-opn": "^2.0.0",
-    "conf": "^7.1.1",
-    "date-fns": "^2.15.0",
-    "fastify": "^3.1.1",
-    "fastify-static": "^3.2.0",
-    "inquirer": "^7.3.3",
-    "meow": "^7.0.1",
-    "plaid": "^6.0.0",
-    "terminal-link": "^2.1.1"
-  },
-  "engines": {
-    "node": ">=10"
-  },
-  "files": [
-    "cli.js",
-    "index.js",
-    "public/"
-  ]
+	"name": "actualplaid-cli",
+	"version": "0.0.5",
+	"description": "Import transactions from your bank accounts into Actual Budget via Plaid API",
+	"main": "cli.js",
+	"bin": {
+		"actualplaid": "cli.js"
+	},
+	"author": "Luke Herrington <lherrington100@gmail.com>",
+	"license": "MIT",
+	"repository": "github:infiniteluke/actualplaid",
+	"dependencies": {
+		"@actual-app/api": "^6.2.1",
+		"better-opn": "^2.0.0",
+		"conf": "^7.1.1",
+		"date-fns": "^2.15.0",
+		"dotenv": "^16.3.1",
+		"fastify": "^3.1.1",
+		"fastify-static": "^3.2.0",
+		"inquirer": "^7.3.3",
+		"meow": "^7.0.1",
+		"plaid": "^6.0.0",
+		"terminal-link": "^2.1.1"
+	},
+	"engines": {
+		"node": ">=10"
+	},
+	"files": [
+		"cli.js",
+		"index.js",
+		"public/"
+	]
 }
