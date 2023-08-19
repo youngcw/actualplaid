@@ -166,7 +166,7 @@ module.exports = async (command, flags) => {
                     new Date(
                         flags["since"] ||
                         account.lastImport ||
-                        getLastTransactionDate(actual, actualId)
+                        await getLastTransactionDate(actual, actualId)
                     ),
                     "yyyy-MM-dd"
                 );
@@ -188,7 +188,7 @@ module.exports = async (command, flags) => {
                 }
 
                 // TODO: Transactions can be pending
-                importPlaidTransactions(actual, actualId, transactionsForThisAccount);
+                await importPlaidTransactions(actual, actualId, transactionsForThisAccount);
                 config.set(`actualSync.${actualId}.lastImport`, new Date());
             }
             console.log("Import completed for all accounts");

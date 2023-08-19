@@ -49,17 +49,13 @@ function listAccounts(actualInstance) {
  * @param {typeof actual} actualInstance 
  * @param {*} accountId 
  */
-function getLastTransactionDate(actualInstance, accountId) {
-    const account = actualInstance.getAccount(accountId);
-
+async function getLastTransactionDate(actualInstance, accountId) {
     const monthAgo = new Date();
     monthAgo.setMonth(monthAgo.getMonth() - 1);
 
-
-    const transactions = actualInstance.getTransactions(accountId, monthAgo, new Date(),);
-    const last = transactions[account.transactions.length - 1];
-
-    return last.date;
+    const transactions = await actualInstance.getTransactions(accountId, monthAgo, new Date(),);
+    const last = transactions[transactions.length - 1]?.date || new Date(0);
+    return last;
 }
 
 
