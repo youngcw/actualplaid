@@ -7,12 +7,11 @@ const opn = require("better-opn");
 const dateFns = require("date-fns");
 const inquirer = require("inquirer");
 const terminalLink = require("terminal-link");
-const Conf = require("conf");
-const getAppConfigFromEnv = require("./config.js");
+const { getAppConfigFromEnv, getConf } = require("./config.js");
 const { initialize, getLastTransactionDate, importPlaidTransactions, listAccounts, finalize } = require("./actual.js");
 
 const fastify = Fastify({ logger: true });
-const config = new Conf();
+let config;
 const appConfig = getAppConfigFromEnv()
 const plaidClient = new plaid.Client({
     clientID: appConfig.PLAID_CLIENT_ID,
@@ -30,18 +29,40 @@ const startFastifyServer = async () => {
 };
 
 const printSyncedAccounts = () => {
-    const data = config.get("actualSync");
-    if (!data) {
+    const actualData = config.get("actualSync");
+    const plaidData = config.get("plaidAccounts");
+    if (!actualData) {
         console.log("No syncing data found");
+        return;
     }
+
+    console.log("The following accounts are linked to Actual:");
     console.table(
-        Object.values(data).map((account) => ({
+        Object.values(actualData).map((account) => ({
             "Actual Account": account.actualName,
             "Actual Type": account.actualType,
             "Plaid Bank": account.plaidBankName,
             "Plaid Account": account.plaidAccount.name,
             "Plaid Type": `${account.plaidAccount.subtype}/${account.plaidAccount.type}`,
             "Plaid Account #": account.plaidAccount.mask,
+        }))
+    );
+
+    const linkedToActual = Object.entries(actualData).map(
+        ([actualId, { plaidAccount }]) => { return { plaid: plaidAccount.account_id, actual: actualId } }
+    )
+
+    linkedToActual.forEach((ids) => {
+        delete plaidData[ids.plaid];
+    });
+
+    console.log("The following Plaid accounts are linked to this app, but not to Actual:");
+    console.table(
+        Object.values(plaidData).map(({ account, plaidBankName }) => ({
+            "Bank": plaidBankName,
+            "Account": account.name,
+            "Type": `${account.subtype}/${account.type}`,
+            "Account #": account.mask,
         }))
     );
 };
@@ -107,6 +128,8 @@ module.exports = async (command, flags) => {
         console.log('Try "actualplaid --help"');
         process.exit();
     }
+
+    config = getConf(flags.user || "default")
 
     if (command === "config") {
         console.log(`Config for this app is located at: ${config.path}`);

@@ -1,7 +1,7 @@
+const Conf = require("conf");
 const config = require("dotenv").config;
 config();
 
-const ACTUAL_BUDGET_ID = process.env.ACTUAL_BUDGET_ID || "";
 const ACTUAL_SERVER_URL = process.env.ACTUAL_SERVER_URL || "";
 const ACTUAL_SERVER_PASSWORD = process.env.ACTUAL_SERVER_PASSWORD || "";
 
@@ -20,9 +20,8 @@ const PLAID_PRODUCTS = (process.env.PLAID_PRODUCTS || "transactions").split(
 const PLAID_COUNTRY_CODES = (process.env.PLAID_COUNTRY_CODES || "NL").split(",");
 
 
-module.exports = function getAppConfigFromEnv() {
+function getAppConfigFromEnv() {
     const appConfig = {
-        ACTUAL_BUDGET_ID,
         APP_PORT,
         PLAID_CLIENT_ID,
         PLAID_SECRETS,
@@ -41,4 +40,15 @@ module.exports = function getAppConfigFromEnv() {
     })
 
     return appConfig
+}
+
+function getConf(username) {
+    return new Conf({
+        configName: username
+    });
+}
+
+module.exports = {
+    getAppConfigFromEnv,
+    getConf
 }

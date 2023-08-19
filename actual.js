@@ -1,6 +1,7 @@
-const getAppConfigFromEnv = require("./config");
+const { getAppConfigFromEnv } = require("./config");
 const actual = require("@actual-app/api");
 const fs = require("fs");
+const inquirer = require("inquirer");
 
 const appConfig = getAppConfigFromEnv();
 
@@ -8,15 +9,26 @@ const appConfig = getAppConfigFromEnv();
  * 
  * @returns {Promise<typeof actual>}
  */
-async function initialize() {
+async function initialize(config) {
     try {
-        fs.mkdirSync("./temp_data_actual", { recursive: true });
+        const tmp_dir = `./temp_data_actual/${config.get("user")}`
+        fs.mkdirSync(tmp_dir, { recursive: true });
         await actual.init({
             serverURL: appConfig.ACTUAL_SERVER_URL,
             password: appConfig.ACTUAL_SERVER_PASSWORD,
-            dataDir: "./temp_data_actual/"
+            dataDir: tmp_dir
         });
-        await actual.downloadBudget(appConfig.ACTUAL_BUDGET_ID);
+
+        let id = config.get("budget_id")
+        if (!id) {
+            id = await inquirer.prompt({
+                name: "budget_id",
+                message: "This is your first time using this user, what is your budget id? (Can be found is advanced settings on Actual as the 'sync-id')",
+            })
+            config.set("budget_id", id)
+        }
+
+        await actual.downloadBudget(id);
     } catch (e) {
         throw new Error(`Actual Budget Error: ${e.message}`);
     }
