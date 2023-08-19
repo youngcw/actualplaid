@@ -21,10 +21,10 @@ async function initialize(config) {
 
         let id = config.get("budget_id")
         if (!id) {
-            id = await inquirer.prompt({
+            id = (await inquirer.prompt({
                 name: "budget_id",
-                message: "This is your first time using this user, what is your budget id? (Can be found is advanced settings on Actual as the 'sync-id')",
-            })
+                message: `This is your (${config.get('user')}) first time using this user, what is your budget id? (Can be found is advanced settings on Actual as the 'sync-id')`,
+            })).budget_id
             config.set("budget_id", id)
         }
 

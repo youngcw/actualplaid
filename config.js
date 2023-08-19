@@ -43,9 +43,11 @@ function getAppConfigFromEnv() {
 }
 
 function getConf(username) {
-    return new Conf({
+    const tmp = new Conf({
         configName: username
     });
+    tmp.set("user", username);
+    return tmp;
 }
 
 module.exports = {

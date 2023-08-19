@@ -137,7 +137,7 @@ module.exports = async (command, flags) => {
         const syncingData = config.get(`actualSync`) || {};
 
         if (Object.keys(syncingData).length) {
-            const actual = await initialize();
+            const actual = await initialize(config);
             const accountsToSync = Object.entries(syncingData).filter(
                 ([_, account]) =>
                     !flags.account || account.actualName === flags.account
@@ -250,7 +250,7 @@ module.exports = async (command, flags) => {
             }))
         );
 
-        const actualAccounts = await listAccounts(await initialize());
+        const actualAccounts = await listAccounts(await initialize(config));
         const { accountsToSync } = await inquirer.prompt({
             type: "checkbox",
             name: "accountsToSync",
