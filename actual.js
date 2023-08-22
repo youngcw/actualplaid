@@ -54,8 +54,13 @@ async function getLastTransactionDate(actualInstance, accountId) {
     monthAgo.setMonth(monthAgo.getMonth() - 1);
 
     const transactions = await actualInstance.getTransactions(accountId, monthAgo, new Date());
-    // TODO: Plus 1 day if transactions are found
-    const last = transactions[0]?.date || new Date(0);
+
+    if (transactions.length === 0) {
+        return new Date(0);
+    }
+
+    const last = new Date(transactions[0].date);
+    last.setDate(last.getDate() + 1);
     return last;
 }
 

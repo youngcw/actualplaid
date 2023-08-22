@@ -208,7 +208,10 @@ module.exports = async (command, flags) => {
         }
 
     } else if (command === "setup") {
+        /** Configuration for every plaid account */
         let plaidAccounts = config.get("plaidAccounts") || {};
+
+        /** Every plaid account that has been linked to an actual account */
         const linkedToActual = Object.entries(config.get("actualSync") || {}).map(
             ([actualId, { plaidAccount }]) => { return { plaid: plaidAccount.account_id, actual: actualId } }
         )
@@ -259,16 +262,17 @@ module.exports = async (command, flags) => {
             }))
         );
 
-        const actualAccounts = await listAccounts(await initialize(config));
+        const accountsInTheActualBudget = await listAccounts(await initialize(config));
         const { accountsToSync } = await inquirer.prompt({
             type: "checkbox",
             name: "accountsToSync",
-            message: `Which accounts do you want to sync with plaid?`,
-            choices: actualAccounts.map(({ name, id }) => ({ name, value: id })).filter(({ value }) => !linkedToActual.find(({ actual }) => actual === value)),
+            message: `Which actual accounts do you want to sync with plaid?`,
+            // Only show accounts that are not already linked
+            choices: accountsInTheActualBudget.map(({ name, id }) => ({ name, value: id })).filter(({ value }) => !linkedToActual.find(({ actual }) => actual === value)),
         });
 
         for (acctId of accountsToSync) {
-            const actualAcct = actualAccounts.find((a) => a.id === acctId);
+            const actualAcct = accountsInTheActualBudget.find((a) => a.id === acctId);
             // TODO: Maybe exclude accounts that are already linked
             let syncChoices = Object.values(plaidAccounts).map(
                 ({ account, plaidBankName }) => ({
@@ -276,24 +280,26 @@ module.exports = async (command, flags) => {
                     name: `${plaidBankName}: ${account.name} - ${account.subtype}/${account.type} (${account.mask})`,
                 })
             );
-            const { plaidAccountToSync } = await inquirer.prompt({
+            const { plaidAccountIDToSync } = await inquirer.prompt({
                 type: "list",
                 name: "plaidAccountToSync",
                 message: `Which Plaid acount do you want to sync with "${actualAcct.name}"?`,
                 choices: syncChoices,
             });
-            const plaidAccount = Object.values(plaidAccounts).find(
-                ({ account }) => account.account_id === plaidAccountToSync
+            const plaidAccountToSync = Object.values(plaidAccounts).find(
+                ({ account }) => account.account_id === plaidAccountIDToSync
             );
+
+            delete plaidAccounts[plaidAccountIDToSync]
 
             config.set(`actualSync.${acctId}`, {
                 actualName: actualAcct.name,
                 actualType: actualAcct.type,
                 actualAccountId: actualAcct.id,
-                plaidItemId: plaidAccount.plaidItemId,
-                plaidToken: plaidAccount.plaidToken,
-                plaidAccount: plaidAccount.account,
-                plaidBankName: plaidAccount.plaidBankName,
+                plaidItemId: plaidAccountToSync.plaidItemId,
+                plaidToken: plaidAccountToSync.plaidToken,
+                plaidAccount: plaidAccountToSync.account,
+                plaidBankName: plaidAccountToSync.plaidBankName,
             });
         }
         printSyncedAccounts();

@@ -3,3 +3,4 @@ node_modules/
 PATTERN/
 .env
 temp_data_actual/
+*.json
