@@ -10,7 +10,11 @@ const terminalLink = require("terminal-link");
 const { getAppConfigFromEnv, getConf } = require("./config.js");
 const { initialize, getLastTransactionDate, importPlaidTransactions, listAccounts, finalize } = require("./actual.js");
 
-const fastify = Fastify({ logger: true });
+const fastify = Fastify({
+    logger: {
+        level: "error"
+    }
+});
 let config;
 const appConfig = getAppConfigFromEnv()
 const plaidClient = new plaid.Client({
@@ -171,35 +175,40 @@ module.exports = async (command, flags) => {
                     "yyyy-MM-dd"
                 );
 
-                console.log("Importing transactions for account: ", account.plaidAccount.name, "from ", startDate, "to", endDate)
-                const tempStartTime = new Date();
+                // Check if start and end is the same day, but not same second
+                if (startDate === endDate) {
+                    console.log("Skipping: ", account.plaidAccount.name, "because it was already imported today")
+                } else {
 
-                const transactionsResponse = await cachedTransaction(account.plaidToken, startDate);
-                const transactionsForThisAccount = transactionsResponse.transactions.filter(
-                    (transaction) =>
-                        transaction.account_id === account.plaidAccount.account_id
-                );
+                    console.log("Importing transactions for account: ", account.plaidAccount.name, "from ", startDate, "to", endDate)
+                    const tempStartTime = new Date();
 
-                // Sleep at least 1 sec to let user cancel, continue with promise
-                const timeTookForPlaid = new Date() - tempStartTime;
-                const timeToSleep = 2000 - timeTookForPlaid;
-                if (timeToSleep > 0) {
-                    await new Promise((resolve) => setTimeout(resolve, timeToSleep));
+                    const transactionsResponse = await cachedTransaction(account.plaidToken, startDate);
+                    const transactionsForThisAccount = transactionsResponse.transactions.filter(
+                        (transaction) =>
+                            transaction.account_id === account.plaidAccount.account_id
+                    );
+
+                    // Sleep at least 2 sec to let user cancel, continue with promise
+                    const timeTookForPlaid = new Date() - tempStartTime;
+                    const timeToSleep = 2000 - timeTookForPlaid;
+                    if (timeToSleep > 0) {
+                        await new Promise((resolve) => setTimeout(resolve, timeToSleep));
+                    }
+
+                    await importPlaidTransactions(actual, actualId, transactionsForThisAccount);
+                    config.set(`actualSync.${actualId}.lastImport`, new Date());
                 }
-
-                // TODO: Transactions can be pending
-                await importPlaidTransactions(actual, actualId, transactionsForThisAccount);
-                config.set(`actualSync.${actualId}.lastImport`, new Date());
             }
             console.log("Import completed for all accounts");
 
-            finalize(actual)
+            await finalize(actual)
         } else {
             throw new Error("No syncing data found please run `actualplaid setup`");
         }
 
     } else if (command === "setup") {
-        let plaidAccounts = config.get("plaidAccounts");
+        let plaidAccounts = config.get("plaidAccounts") || {};
         const linkedToActual = Object.entries(config.get("actualSync") || {}).map(
             ([actualId, { plaidAccount }]) => { return { plaid: plaidAccount.account_id, actual: actualId } }
         )
@@ -301,12 +310,14 @@ module.exports = async (command, flags) => {
 fastify.get("/", (req, reply) => reply.sendFile("index.html"));
 
 fastify.post("/create_link_token", (request, reply) => {
+    const appConfig = getAppConfigFromEnv()
+
     const configs = {
-        user: { client_user_id: "user-id" },
+        user: { client_user_id: config.get("user") },
         client_name: "Actual Budget Plaid Importer",
-        products: PLAID_PRODUCTS,
-        country_codes: PLAID_COUNTRY_CODES,
-        language: "en",
+        products: appConfig.PLAID_PRODUCTS,
+        country_codes: appConfig.PLAID_COUNTRY_CODES,
+        language: "nl",
     };
     plaidClient.createLinkToken(configs, (error, res) => {
         if (error != null) {
@@ -318,6 +329,7 @@ fastify.post("/create_link_token", (request, reply) => {
 });
 
 fastify.post("/get_access_token", async (request, reply) => {
+    console.log("Received new request to link accounts")
     const body = JSON.parse(request.body);
 
     try {
@@ -325,7 +337,7 @@ fastify.post("/get_access_token", async (request, reply) => {
         const { accounts, item: { institution_id } } = await plaidClient.getAccounts(access_token);
         const { institution: { name } } = await plaidClient.getInstitutionById(institution_id);
         accounts.forEach((account) => {
-
+            console.log("Linked new account: ", name)
             // TODO: Duplicate prevention
             config.set(`plaidAccounts.${account.account_id}`, {
                 account,

@@ -42,11 +42,15 @@ function getAppConfigFromEnv() {
     return appConfig
 }
 
+
 function getConf(username) {
+    const appConfig = getAppConfigFromEnv();
+    const key = `${username}_${appConfig.PLAID_ENV}`;
+
     const tmp = new Conf({
-        configName: username
+        configName: key
     });
-    tmp.set("user", username);
+    tmp.set("user", key);
     return tmp;
 }
 

@@ -53,21 +53,34 @@ async function getLastTransactionDate(actualInstance, accountId) {
     const monthAgo = new Date();
     monthAgo.setMonth(monthAgo.getMonth() - 1);
 
-    const transactions = await actualInstance.getTransactions(accountId, monthAgo, new Date(),);
-    const last = transactions[transactions.length - 1]?.date || new Date(0);
+    const transactions = await actualInstance.getTransactions(accountId, monthAgo, new Date());
+    // TODO: Plus 1 day if transactions are found
+    const last = transactions[0]?.date || new Date(0);
     return last;
 }
 
 
-const transactionMapper = (accountId) => (transaction) => ({
-    account: accountId,
-    date: transaction.date,
-    amount: -transaction.amount * 100,
-    payee_name: transaction.merchant_name || transaction.name,
-    imported_payee: transaction.merchant_name || transaction.name,
-    notes: transaction.name,
-    imported_id: transaction.transaction_id,
-});
+const transactionMapper = (accountId) => (transaction) => {
+    if (transaction.pending) {
+        console.error(transaction, accountId)
+        throw new Error("Pending transactions are not supported")
+    }
+
+    let convertedAmount = transaction.amount * 100;
+
+    convertedAmount = Math.round(convertedAmount);
+    convertedAmount *= -1;
+
+    return {
+        account: accountId,
+        date: transaction.date,
+        amount: convertedAmount,
+        payee_name: transaction.merchant_name || transaction.name,
+        imported_payee: transaction.merchant_name || transaction.name,
+        notes: transaction.name,
+        imported_id: transaction.transaction_id,
+    }
+}
 
 
 async function importPlaidTransactions(actualInstance, accountId, transactions) {
@@ -78,6 +91,9 @@ async function importPlaidTransactions(actualInstance, accountId, transactions) 
         accountId,
         mapped
     );
+    console.log("Imported transactions raw data START:")
+    console.log(transactions)
+    console.log("ENV")
     console.log("Actual logs: ", actualResult);
 }
 
