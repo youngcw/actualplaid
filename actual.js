@@ -2,6 +2,8 @@ const { getAppConfigFromEnv } = require("./config");
 const actual = require("@actual-app/api");
 const fs = require("fs");
 const inquirer = require("inquirer");
+let { q, runQuery } = require('@actual-app/api');
+
 
 const appConfig = getAppConfigFromEnv();
 
@@ -102,6 +104,14 @@ async function importPlaidTransactions(actualInstance, accountId, transactions) 
     console.log("Actual logs: ", actualResult);
 }
 
+async function getBalance(actualInstance, accountId) {
+    const balance = await actualInstance.runQuery(q('transactions')
+        .filter({ account: accountId })
+        .options({ splits: 'all' })
+        .calculate({ $sum: '$amount' }),)
+    return balance.data;
+}
+
 /**
  * 
  * @param {typeof actual} actualInstance 
@@ -117,5 +127,6 @@ module.exports = {
     getLastTransactionDate,
     importPlaidTransactions,
     transactionMapper,
-    finalize
+    finalize,
+    getBalance
 }

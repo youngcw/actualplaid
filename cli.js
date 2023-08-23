@@ -8,7 +8,7 @@ const dateFns = require("date-fns");
 const inquirer = require("inquirer");
 const terminalLink = require("terminal-link");
 const { getAppConfigFromEnv, getConf } = require("./config.js");
-const { initialize, getLastTransactionDate, importPlaidTransactions, listAccounts, finalize } = require("./actual.js");
+const { initialize, getLastTransactionDate, importPlaidTransactions, listAccounts, finalize, getBalance } = require("./actual.js");
 
 const fastify = Fastify({
     logger: {
@@ -306,6 +306,31 @@ module.exports = async (command, flags) => {
         console.log(
             `Setup completed sucessfully. Run \`actualplaid import\` to sync your setup banks with their respective actual accounts`
         );
+
+    } else if (command == "check") {
+        const actual = await initialize(config);
+        const syncingData = config.get(`actualSync`) || {};
+
+        if (Object.keys(syncingData).length == 0) {
+            console.log("No syncing data found please run `actualplaid setup`");
+        }
+
+        for (let [actualId, account] of Object.entries(syncingData)) {
+            const balanceFromActual = await getBalance(actual, actualId);
+            const plaidBalanceInformation = await plaidClient.getBalance(account.plaidToken, {
+                account_ids: [account.plaidAccount.account_id],
+            });
+
+            const balanceFromPlaid = plaidBalanceInformation.accounts[0].balances.current
+
+            console.log(`Checking balance for account: ${account.actualName} (${account.plaidBankName})`)
+            console.log("Actual balance: ", balanceFromActual)
+            console.log("Plaid balance: ", balanceFromPlaid)
+
+            if (balanceFromActual / 100 !== balanceFromPlaid) {
+                throw new Error(`Balance for account ${account.actualName} (${account.plaidBankName}) does not match. Actual: ${balanceFromActual} Plaid: ${balanceFromPlaid}`)
+            }
+        }
 
     } else if (command === "ls") {
         printSyncedAccounts();
