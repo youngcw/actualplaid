@@ -17,7 +17,7 @@ const PLAID_ENV = process.env.PLAID_ENV || "sandbox";
 const PLAID_PRODUCTS = (process.env.PLAID_PRODUCTS || "transactions").split(
     ","
 );
-const PLAID_COUNTRY_CODES = (process.env.PLAID_COUNTRY_CODES || "NL").split(",");
+const PLAID_COUNTRY_CODES = (process.env.PLAID_COUNTRY_CODES || "EN").split(",");
 
 
 function getAppConfigFromEnv() {
