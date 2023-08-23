@@ -273,7 +273,6 @@ module.exports = async (command, flags) => {
 
         for (acctId of accountsToSync) {
             const actualAcct = accountsInTheActualBudget.find((a) => a.id === acctId);
-            // TODO: Maybe exclude accounts that are already linked
             let syncChoices = Object.values(plaidAccounts).map(
                 ({ account, plaidBankName }) => ({
                     value: account.account_id,

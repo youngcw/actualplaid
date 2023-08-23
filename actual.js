@@ -61,8 +61,10 @@ async function getLastTransactionDate(actualInstance, accountId) {
         return new Date(0);
     }
 
+    // Transactions of the day are already imported, so start from the next day.
     const last = new Date(transactions[0].date);
     last.setDate(last.getDate() + 1);
+
     return last;
 }
 

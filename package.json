@@ -8,7 +8,6 @@
 	},
 	"author": "Luke Herrington <lherrington100@gmail.com>",
 	"license": "MIT",
-	"repository": "github:infiniteluke/actualplaid",
 	"dependencies": {
 		"@actual-app/api": "^6.2.1",
 		"better-opn": "^2.0.0",
