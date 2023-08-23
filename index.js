@@ -13,6 +13,7 @@ const cli = meow(
       --account, -a  The account to import, ex: --account="My Checking"
       --since, -s    The start date after which transactions should be imported. Defaults to beginning of current month, format: yyyy-MM-dd, ex: --since=2020-05-28
     config           Print the location of actualplaid the config file
+    check            Compare the Actual Budger balance to the synced accounts
     --version        Print the version of actualplaid being used
 
 
@@ -24,8 +25,8 @@ const cli = meow(
 `,
     {
         flags: {
-            reset: {
-                alias: "r",
+            user: {
+                alias: "u",
                 type: "string",
             },
             account: {
