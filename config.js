@@ -17,8 +17,8 @@ const PLAID_ENV = process.env.PLAID_ENV || "sandbox";
 const PLAID_PRODUCTS = (process.env.PLAID_PRODUCTS || "transactions").split(
     ","
 );
-const PLAID_COUNTRY_CODES = (process.env.PLAID_COUNTRY_CODES || "EN").split(",");
-
+const PLAID_COUNTRY_CODES = (process.env.PLAID_COUNTRY_CODES || "US").split(",");
+const PLAID_LANGUAGE = (process.env.PLAID_LANGUAGE || "en")
 
 function getAppConfigFromEnv() {
     const appConfig = {
@@ -27,6 +27,7 @@ function getAppConfigFromEnv() {
         PLAID_SECRETS,
         PLAID_ENV,
         PLAID_PRODUCTS,
+        PLAID_LANGUAGE,
         PLAID_COUNTRY_CODES,
         ACTUAL_SERVER_URL,
         ACTUAL_SERVER_PASSWORD

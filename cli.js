@@ -347,7 +347,7 @@ fastify.post("/create_link_token", (request, reply) => {
         client_name: "Actual Budget Plaid Importer",
         products: appConfig.PLAID_PRODUCTS,
         country_codes: appConfig.PLAID_COUNTRY_CODES,
-        language: appConfig.PLAID_COUNTRY_CODES[0].toLowerCase(),
+        language: appConfig.PLAID_LANGUAGE
     };
     plaidClient.createLinkToken(configs, (error, res) => {
         if (error != null) {
