@@ -281,7 +281,7 @@ module.exports = async (command, flags) => {
             );
             const { plaidAccountIDToSync } = await inquirer.prompt({
                 type: "list",
-                name: "plaidAccountToSync",
+                name: "plaidAccountIDToSync",
                 message: `Which Plaid acount do you want to sync with "${actualAcct.name}"?`,
                 choices: syncChoices,
             });
