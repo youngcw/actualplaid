@@ -196,7 +196,7 @@ module.exports = async (command, flags) => {
                         await new Promise((resolve) => setTimeout(resolve, timeToSleep));
                     }
 
-                    await importPlaidTransactions(actual, actualId, transactionsForThisAccount);
+                    await importPlaidTransactions(actual, actualId, account.plaidBankName, transactionsForThisAccount);
                     config.set(`actualSync.${actualId}.lastImport`, new Date());
                 }
             }

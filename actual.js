@@ -68,8 +68,76 @@ async function getLastTransactionDate(actualInstance, accountId) {
     return last;
 }
 
+const ABN_AMRO_TRANSACTION_MAPPER = (accountId) => (transaction) => {
+    const description = transaction.name
+    let notes = description;
+    let payee = description;
 
-const transactionMapper = (accountId) => (transaction) => {
+    if (description.includes("TRTP")) {
+        let splitted = description.split("/");
+        if (splitted[2].includes("iDEAL") || splitted[2].includes("SEPA OVERBOEKING")) {
+            payee = splitted[8].trim();
+            notes = splitted[10].trim();
+        } else if (splitted[2].includes("SEPA Incasso")) {
+            payee = splitted[6].trim();
+            notes = splitted[10].trim();
+        }
+    } else if (description.includes("SEPA iDEAL")) {
+        let splitted = description.split("Naam:");
+        payee = splitted[1].split("Omschrijving:")[0].trim();
+        notes = splitted[1].split("Omschrijving:")[1].split("Kenmerk:")[0].trim();
+    } else if (description.includes("BEA")) {
+        let splitted = description.split(",");
+        let info = splitted[1].replace(" Apple Pay", "").replace("Betaalpas", "").replace("PAS544", "").trim();
+        payee = info;
+    } else if (description.includes("SEPA Incasso")) {
+        let splitted = description.split("Naam:");
+        if (splitted[1].includes("Machtiging:")) {
+            payee = splitted[1].split("Machtiging:")[0].trim();
+        } else {
+            payee = splitted[1].split("Omschrijving:")[0].trim();
+        }
+        notes = splitted[1].split("Omschrijving:")[1].split("IBAN:")[0].trim();
+    } else if (description.includes("SEPA Overboeking")) {
+        let splitted = description.split("Naam:");
+        if (splitted.length > 1) {
+            if (splitted[1].includes("Omschrijving:")) {
+                payee = splitted[1].split("Omschrijving:")[0].trim();
+                if (splitted[1].includes("Kenmerk:")) {
+                    notes = splitted[1].split("Omschrijving:")[1].split("Kenmerk:")[0].trim();
+                } else {
+                    notes = splitted[1].split("Omschrijving:")[1].trim();
+                }
+            } else {
+                payee = splitted[1].trim();
+                notes = "";
+            }
+        } else {
+            payee = splitted[0];
+            notes = "";
+        }
+    }
+
+
+    let convertedAmount = transaction.amount * 100;
+
+    convertedAmount = Math.round(convertedAmount);
+    convertedAmount *= -1;
+
+    return {
+        account: accountId,
+        date: transaction.date,
+        amount: convertedAmount,
+        payee_name: payee,
+        imported_payee: payee,
+        notes: notes,
+        imported_id: transaction.transaction_id,
+    }
+
+}
+
+
+const GENERIC_TRANSACTION_MAPPER = (accountId) => (transaction) => {
     if (transaction.pending) {
         console.error(transaction, accountId)
         throw new Error("Pending transactions are not supported")
@@ -90,11 +158,22 @@ const transactionMapper = (accountId) => (transaction) => {
         imported_id: transaction.transaction_id,
     }
 }
+const map = {
+    "ABN AMRO": ABN_AMRO_TRANSACTION_MAPPER,
+}
+
+const transactionMapper = (accountId, bank) => {
+    if (map[bank]) {
+        return map[bank](accountId)
+    } else {
+        return GENERIC_TRANSACTION_MAPPER(accountId)
+    }
+}
 
 
-async function importPlaidTransactions(actualInstance, accountId, transactions) {
+async function importPlaidTransactions(actualInstance, accountId, bank, transactions) {
     const mapped = transactions
-        .map(transactionMapper(accountId))
+        .map(transactionMapper(accountId, bank))
 
     const actualResult = await actualInstance.importTransactions(
         accountId,
