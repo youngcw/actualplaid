@@ -138,10 +138,10 @@ const ABN_AMRO_TRANSACTION_MAPPER = (accountId) => (transaction) => {
 
 
 const GENERIC_TRANSACTION_MAPPER = (accountId) => (transaction) => {
-    if (transaction.pending) {
-        console.error(transaction, accountId)
-        throw new Error("Pending transactions are not supported")
-    }
+    //if (transaction.pending) {
+    //    console.error(transaction, accountId)
+    //    throw new Error("Pending transactions are not supported")
+    //}
 
     let convertedAmount = transaction.amount * 100;
 
@@ -156,6 +156,7 @@ const GENERIC_TRANSACTION_MAPPER = (accountId) => (transaction) => {
         imported_payee: transaction.merchant_name || transaction.name,
         notes: transaction.name,
         imported_id: transaction.transaction_id,
+        cleared: !transaction.pending,
     }
 }
 const map = {
