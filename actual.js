@@ -154,7 +154,7 @@ const GENERIC_TRANSACTION_MAPPER = (accountId) => (transaction) => {
         amount: convertedAmount,
         payee_name: transaction.merchant_name || transaction.name,
         imported_payee: transaction.merchant_name || transaction.name,
-        notes: transaction.name,
+        //notes: transaction.name,
         imported_id: transaction.transaction_id,
         cleared: !transaction.pending,
     }
