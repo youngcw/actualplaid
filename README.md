@@ -33,6 +33,7 @@ Pending transactions give an error, so you will need to wait until they are post
       --account, -a   The account to import, ex: --account="My Checking"
       --since, -s     The start date after which transactions should be imported. Defaults to beginning of current month, format: yyyy-MM-dd, ex: --since=2020-05-28
     config           Print the location of actualplaid the config file
+    check            Compare the Actual Budget balance to the synced accounts
     --version        Print the version of actualplaid being used
 
   Options for all commands
