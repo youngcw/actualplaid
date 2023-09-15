@@ -321,12 +321,13 @@ module.exports = async (command, flags) => {
             });
 
             const balanceFromPlaid = plaidBalanceInformation.accounts[0].balances.current
+            const actualConverted = actual.utils.integerToAmount(balanceFromActual);
 
             console.log(`Checking balance for account: ${account.actualName} (${account.plaidBankName})`)
-            console.log("Actual balance: ", balanceFromActual)
+            console.log("Actual balance: ", actualConverted)
             console.log("Plaid balance: ", balanceFromPlaid)
 
-            if (balanceFromActual / 100 !== balanceFromPlaid) {
+            if (actualConverted !== balanceFromPlaid) {
                 throw new Error(`Balance for account ${account.actualName} (${account.plaidBankName}) does not match. Actual: ${balanceFromActual} Plaid: ${balanceFromPlaid}`)
             }
         }

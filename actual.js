@@ -189,7 +189,7 @@ async function importPlaidTransactions(actualInstance, accountId, bank, transact
 async function getBalance(actualInstance, accountId) {
     const balance = await actualInstance.runQuery(q('transactions')
         .filter({ account: accountId })
-        .options({ splits: 'all' })
+        //.options({ splits: 'inline' })
         .calculate({ $sum: '$amount' }),)
     return balance.data;
 }
