@@ -88,18 +88,30 @@ async function startLinkingPlaid() {
     const { confirm } = await inquirer.prompt({
         type: "confirm",
         name: "confirm",
-        message: `A browser window will now open. Please link each bank you expect to sync with Actual. Proceed?`,
+        message: `Please link each bank you expect to sync with Actual, using the URL to follow. Proceed?`,
     });
 
     if (!confirm) {
         throw new Error("Plaid Linking cancelled");
     }
 
-    const plaidLinkLink = `http://localhost:${appConfig.APP_PORT}`;
-    console.log(
-        `Opening ${plaidLinkLink} to link with Plaid...\nNOTE: Please return to your CLI when completed.`
-    );
-    opn(plaidLinkLink);
+    //If running locally, open the browser to localhost.
+    if (`${appConfig.APP_URL}` == 'http://localhost') {
+
+        const plaidLinkLink = `http://localhost:${appConfig.APP_PORT}`;
+        console.log(
+            `Opening ${plaidLinkLink} to link with Plaid...\nNOTE: Please return to your CLI when completed.`
+        );
+        opn(plaidLinkLink);
+
+    } else { //If not running locally / needing https, let the user open it themselves.
+
+        const plaidLinkLink = `${appConfig.APP_URL}`;
+        console.log(
+            `Open ${plaidLinkLink} to link with Plaid in a browser...\nNOTE: Please return to your CLI when completed.`
+        );
+
+    }
 
     let doneLinking = false;
 
