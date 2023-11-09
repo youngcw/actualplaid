@@ -7,10 +7,13 @@ const ACTUAL_SERVER_PASSWORD = process.env.ACTUAL_SERVER_PASSWORD || "";
 
 const APP_PORT = process.env.APP_PORT || 3000;
 
+const APP_URL = process.env.APP_URL || "http://localhost"
+
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID || "";
 const PLAID_SECRETS = {
     "development": process.env.PLAID_SECRET_DEVELOPMENT,
     "sandbox": process.env.PLAID_SECRET_SANDBOX,
+    "production": process.env.PLAID_SECRET_PRODUCTION,
 };
 
 const PLAID_ENV = process.env.PLAID_ENV || "sandbox";
@@ -23,6 +26,7 @@ const PLAID_LANGUAGE = (process.env.PLAID_LANGUAGE || "en")
 function getAppConfigFromEnv() {
     const appConfig = {
         APP_PORT,
+        APP_URL,
         PLAID_CLIENT_ID,
         PLAID_SECRETS,
         PLAID_ENV,
