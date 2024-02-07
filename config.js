@@ -6,7 +6,7 @@ const ACTUAL_SERVER_URL = process.env.ACTUAL_SERVER_URL || "";
 const ACTUAL_SERVER_PASSWORD = process.env.ACTUAL_SERVER_PASSWORD || "";
 
 const APP_PORT = process.env.APP_PORT || 3000;
-
+const APP_BIND_ADDRESS = process.env.APP_BIND_ADDRESS || "127.0.0.1";
 const APP_URL = process.env.APP_URL || "http://localhost"
 
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID || "";
@@ -26,6 +26,7 @@ const PLAID_LANGUAGE = (process.env.PLAID_LANGUAGE || "en")
 function getAppConfigFromEnv() {
     const appConfig = {
         APP_PORT,
+        APP_BIND_ADDRESS,
         APP_URL,
         PLAID_CLIENT_ID,
         PLAID_SECRETS,
