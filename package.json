@@ -9,7 +9,7 @@
 	"author": "Luke Herrington <lherrington100@gmail.com>",
 	"license": "MIT",
 	"dependencies": {
-		"@actual-app/api": "^6.5.0",
+		"@actual-app/api": "^6.7.0",
 		"better-opn": "^2.0.0",
 		"conf": "^7.1.1",
 		"date-fns": "^2.15.0",
