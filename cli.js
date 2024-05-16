@@ -29,7 +29,7 @@ fastify.register(fastifyStatic, {
 });
 
 const startFastifyServer = async () => {
-    await fastify.listen(appConfig.APP_PORT);
+    await fastify.listen({ port: appConfig.APP_PORT, host: '0.0.0.0' });
 };
 
 const printSyncedAccounts = () => {
