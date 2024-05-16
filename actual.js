@@ -30,7 +30,12 @@ async function initialize(config) {
             config.set("budget_id", id)
         }
 
-        await actual.downloadBudget(id);
+        if (appConfig.ACTUAL_SERVER_IS_ENCRYPTED) {
+            await actual.downloadBudget(id, { password: appConfig.ACTUAL_SERVER_PASSWORD });
+        }
+        else {
+            await actual.downloadBudget(id);
+        }
     } catch (e) {
         throw new Error(`Actual Budget Error: ${e.message}`);
     }

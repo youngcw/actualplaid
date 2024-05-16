@@ -4,6 +4,7 @@ config();
 
 const ACTUAL_SERVER_URL = process.env.ACTUAL_SERVER_URL || "";
 const ACTUAL_SERVER_PASSWORD = process.env.ACTUAL_SERVER_PASSWORD || "";
+const ACTUAL_SERVER_IS_ENCRYPTED = process.env.ACTUAL_SERVER_IS_ENCRYPTED || false;
 
 const APP_PORT = process.env.APP_PORT || 3000;
 
@@ -34,7 +35,8 @@ function getAppConfigFromEnv() {
         PLAID_LANGUAGE,
         PLAID_COUNTRY_CODES,
         ACTUAL_SERVER_URL,
-        ACTUAL_SERVER_PASSWORD
+        ACTUAL_SERVER_PASSWORD,
+        ACTUAL_SERVER_IS_ENCRYPTED
     }
 
     // Assert that all required environment variables are set
