@@ -7,7 +7,7 @@ const cli = meow(
     $ actualplaid <command> <flags>
 
   Commands & Options
-    setup            Link bank accounts with your Actual Budget accounts via Plai
+    setup            Link bank accounts with your Actual Budget accounts via Plaid
     ls               List currently syncing accounts
     import           Sync bank accounts to Actual Budget
       --account, -a  The account to import, ex: --account="My Checking"

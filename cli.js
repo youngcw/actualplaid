@@ -1,8 +1,8 @@
 const util = require("util");
-const plaid = require("plaid");
+const { Configuration, PlaidEnvironments, PlaidApi } = require("plaid");
 const path = require("path");
 const Fastify = require("fastify");
-const fastifyStatic = require("fastify-static");
+const fastifyStatic = require("@fastify/static");
 const opn = require("better-opn");
 const dateFns = require("date-fns");
 const inquirer = require("inquirer");
@@ -15,13 +15,19 @@ const fastify = Fastify({
         level: "error"
     }
 });
+
 let config;
 const appConfig = getAppConfigFromEnv()
-const plaidClient = new plaid.Client({
-    clientID: appConfig.PLAID_CLIENT_ID,
-    secret: appConfig.PLAID_SECRETS[appConfig.PLAID_ENV],
-    env: plaid.environments[appConfig.PLAID_ENV],
+const configuration = new Configuration({
+    basePath: PlaidEnvironments[appConfig.PLAID_ENV],
+    baseOptions: {
+        headers: {
+          'PLAID-CLIENT-ID': appConfig.PLAID_CLIENT_ID,
+          'PLAID-SECRET': appConfig.PLAID_SECRETS[appConfig.PLAID_ENV]
+        }
+    }
 });
+const plaidClient = new PlaidApi(configuration);
 
 fastify.register(fastifyStatic, {
     root: path.join(__dirname, "public"),
@@ -29,7 +35,7 @@ fastify.register(fastifyStatic, {
 });
 
 const startFastifyServer = async () => {
-    await fastify.listen(appConfig.APP_PORT);
+    await fastify.listen({ port: appConfig.APP_PORT, host: appConfig.APP_BIND_ADDRESS });
 };
 
 const printSyncedAccounts = () => {
@@ -166,12 +172,11 @@ module.exports = async (command, flags) => {
             const cachedTransaction = async (token, startDate) => {
                 const key = `${token}-${startDate.toString()}`;
                 if (!transactionsPerToken[key]) {
-                    transactionsPerToken[key] = await plaidClient.getTransactions(
-                        token,
-                        startDate,
-                        endDate,
-                        {}
-                    );
+                    transactionsPerToken[key] = await plaidClient.transactionsGet({
+                        access_token: token,
+                        start_date: startDate,
+                        end_date: endDate
+                    });
 
                 }
                 return transactionsPerToken[key];
@@ -196,7 +201,7 @@ module.exports = async (command, flags) => {
                     const tempStartTime = new Date();
 
                     const transactionsResponse = await cachedTransaction(account.plaidToken, startDate);
-                    const transactionsForThisAccount = transactionsResponse.transactions.filter(
+                    const transactionsForThisAccount = transactionsResponse.data.transactions.filter(
                         (transaction) =>
                             transaction.account_id === account.plaidAccount.account_id
                     );
@@ -328,11 +333,14 @@ module.exports = async (command, flags) => {
 
         for (let [actualId, account] of Object.entries(syncingData)) {
             const balanceFromActual = await getBalance(actual, actualId);
-            const plaidBalanceInformation = await plaidClient.getBalance(account.plaidToken, {
-                account_ids: [account.plaidAccount.account_id],
+            const plaidBalanceInformation = await plaidClient.accountsBalanceGet({
+                access_token: account.plaidToken, 
+                options: {
+                    account_ids: [account.plaidAccount.account_id],
+                }
             });
 
-            const balanceFromPlaid = plaidBalanceInformation.accounts[0].balances.current
+            const balanceFromPlaid = plaidBalanceInformation.data.accounts[0].balances.current
             const actualConverted = actual.utils.integerToAmount(balanceFromActual);
 
             console.log(`Checking balance for account: ${account.actualName} (${account.plaidBankName})`)
@@ -362,23 +370,34 @@ fastify.post("/create_link_token", (request, reply) => {
         country_codes: appConfig.PLAID_COUNTRY_CODES,
         language: appConfig.PLAID_LANGUAGE
     };
-    plaidClient.createLinkToken(configs, (error, res) => {
-        if (error != null) {
+    plaidClient.linkTokenCreate(configs)
+        .then((response) => reply.send({ link_token: response.data.link_token }))
+        .catch(() => {
             console.error(error);
             process.exit(1);
-        }
-        reply.send({ link_token: res.link_token });
-    });
+        });
 });
 
 fastify.post("/get_access_token", async (request, reply) => {
     console.log("Received new request to link accounts")
+    const appConfig = getAppConfigFromEnv()
     const body = JSON.parse(request.body);
 
     try {
-        const { access_token, item_id } = await plaidClient.exchangePublicToken(body.public_token);
-        const { accounts, item: { institution_id } } = await plaidClient.getAccounts(access_token);
-        const { institution: { name } } = await plaidClient.getInstitutionById(institution_id);
+        const tokenResponse = await plaidClient.itemPublicTokenExchange({ public_token: body.public_token });
+        const access_token = tokenResponse.data.access_token;
+        const item_id = tokenResponse.data.item_id;
+
+        const accountResponse = await plaidClient.accountsGet({ access_token: access_token });
+        const accounts = accountResponse.data.accounts;
+        const institution_id = accountResponse.data.item.institution_id;
+
+        const institutionResponse = await plaidClient.institutionsGetById({
+            institution_id: institution_id,
+            country_codes: appConfig.PLAID_COUNTRY_CODES
+        });
+        const name = institutionResponse.data.institution.name;
+
         accounts.forEach((account) => {
             console.log("Linked new account: ", name)
             // TODO: Duplicate prevention

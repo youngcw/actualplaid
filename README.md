@@ -8,7 +8,7 @@ As of June 20 2024, Plaid has dropped its development api.  There is now only sa
 -   Clone this repo!
 -   Install dependencies: `npm ci`
 -   Create [plaid developer account](https://dashboard.plaid.com/overview/development) and collect client id/secret keys
--   Copy `.sample.env` to `.env` and fill in the blanks
+-   Copy `.env.sample` to `.env` and fill in the blanks
 -   Open Actual Budget desktop app
 -   Run `setup`: `node index.js setup`
 -   Login to banks you would like to sync
